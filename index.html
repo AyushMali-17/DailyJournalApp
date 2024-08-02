@@ -7,28 +7,36 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.3.3/dist/purify.min.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Daily Journal</h1>
         <div class="journal-form">
             <input type="text" id="entry-title" placeholder="Entry Title">
-            <textarea id="entry-content" placeholder="Write your journal entry here..."></textarea>
+            <textarea id="entry-content" placeholder="Write your journal entry here... (Markdown supported)"></textarea>
             <div id="word-count">Words: 0</div>
-            <input type="date" id="entry-date">
-            <div class="mood-selector">
-                <label for="mood">Mood:</label>
-                <select id="mood">
-                    <option value="happy">Happy</option>
-                    <option value="neutral">Neutral</option>
-                    <option value="sad">Sad</option>
-                    <option value="excited">Excited</option>
-                    <option value="angry">Angry</option>
-                </select>
+            <div class="form-row">
+                <input type="date" id="entry-date">
+                <div class="mood-selector">
+                    <label for="mood">Mood:</label>
+                    <select id="mood">
+                        <option value="happy">Happy</option>
+                        <option value="neutral">Neutral</option>
+                        <option value="sad">Sad</option>
+                        <option value="excited">Excited</option>
+                        <option value="angry">Angry</option>
+                    </select>
+                </div>
             </div>
             <div class="tags-input">
                 <label for="entry-tags">Tags:</label>
                 <input type="text" id="entry-tags" placeholder="Add tags (comma-separated)">
+            </div>
+            <div class="reminder-input">
+                <label for="reminder-date">Set Reminder:</label>
+                <input type="datetime-local" id="reminder-date">
             </div>
             <button id="save-entry">Save Entry</button>
         </div>
@@ -65,10 +73,18 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2 id="modal-title"></h2>
-            <p id="modal-content"></p>
+            <div id="modal-content"></div>
             <p id="modal-date"></p>
             <p id="modal-mood"></p>
             <p id="modal-tags"></p>
+            <p id="modal-reminder"></p>
+        </div>
+    </div>
+    <div id="reminder-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Journal Reminder</h2>
+            <p id="reminder-message"></p>
         </div>
     </div>
     <script src="script.js"></script>

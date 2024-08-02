@@ -4,18 +4,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const entryDate = document.getElementById('entry-date');
     const entryMood = document.getElementById('mood');
     const entryTags = document.getElementById('entry-tags');
+    const reminderDate = document.getElementById('reminder-date');
     const saveEntryButton = document.getElementById('save-entry');
     const entriesList = document.getElementById('entries-list');
     const searchInput = document.getElementById('search-input');
     const sortSelect = document.getElementById('sort-select');
     const moodFilter = document.getElementById('mood-filter');
     const modal = document.getElementById('entry-modal');
+    const reminderModal = document.getElementById('reminder-modal');
     const modalTitle = document.getElementById('modal-title');
     const modalContent = document.getElementById('modal-content');
     const modalDate = document.getElementById('modal-date');
     const modalMood = document.getElementById('modal-mood');
     const modalTags = document.getElementById('modal-tags');
-    const closeModal = document.getElementsByClassName('close')[0];
+    const modalReminder = document.getElementById('modal-reminder');
+    const reminderMessage = document.getElementById('reminder-message');
+    const closeModals = document.getElementsByClassName('close');
     const wordCount = document.getElementById('word-count');
     const tagCloud = document.getElementById('tag-cloud');
     const backupBtn = document.getElementById('backup-btn');
@@ -31,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.innerHTML = `
                 <h3>${entry.title}</h3>
-                <p>${entry.content.substring(0, 100)}${entry.content.length > 100 ? '...' : ''}</p>
+                <p>${marked(entry.content.substring(0, 100))}${entry.content.length > 100 ? '...' : ''}</p>
                 <small>${entry.date} | Mood: ${entry.mood}</small>
                 <div class="tags">${entry.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
                 <div class="entry-actions">
@@ -56,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = entryDate.value;
         const mood = entryMood.value;
         const tags = entryTags.value.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+        const reminder = reminderDate.value;
 
         if (title && content && date) {
             const entry = {
@@ -63,12 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 content: content,
                 date: new Date(date).toLocaleDateString(),
                 mood: mood,
-                tags: tags
+                tags: tags,
+                reminder: reminder
             };
             journalEntries.unshift(entry);
             localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
             resetForm();
             renderEntries();
+            setReminder(entry);
         }
     }
 
@@ -78,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         entryDate.value = '';
         entryMood.value = 'happy';
         entryTags.value = '';
+        reminderDate.value = '';
         updateWordCount();
     }
 
@@ -94,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         entryDate.value = new Date(entry.date).toISOString().split('T')[0];
         entryMood.value = entry.mood;
         entryTags.value = entry.tags.join(', ');
+        reminderDate.value = entry.reminder || '';
         journalEntries.splice(index, 1);
         localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
         renderEntries();
@@ -119,10 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showEntryDetails(entry) {
         modalTitle.textContent = entry.title;
-        modalContent.textContent = entry.content;
+        modalContent.innerHTML = DOMPurify.sanitize(marked(entry.content));
         modalDate.textContent = `Date: ${entry.date}`;
         modalMood.textContent = `Mood: ${entry.mood}`;
         modalTags.textContent = `Tags: ${entry.tags.join(', ')}`;
+        modalReminder.textContent = entry.reminder ? `Reminder: ${new Date(entry.reminder).toLocaleString()}` : 'No reminder set';
         modal.style.display = 'block';
     }
 
@@ -183,6 +193,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function setReminder(entry) {
+        if (entry.reminder) {
+            const reminderTime = new Date(entry.reminder).getTime();
+            const now = new Date().getTime();
+            const timeUntilReminder = reminderTime - now;
+
+            if (timeUntilReminder > 0) {
+                setTimeout(() => {
+                    showReminderNotification(entry);
+                }, timeUntilReminder);
+            }
+        }
+    }
+
+    function showReminderNotification(entry) {
+        reminderMessage.textContent = `Reminder for your journal entry: "${entry.title}"`;
+        reminderModal.style.display = 'block';
+
+        if ('Notification' in window) {
+            Notification.requestPermission().then(function (permission) {
+                if (permission === 'granted') {
+                    new Notification('Journal Reminder', {
+                        body: `Reminder for your journal entry: "${entry.title}"`,
+                    });
+                }
+            });
+        }
+    }
+
     function backupData() {
         const data = JSON.stringify(journalEntries);
         const blob = new Blob([data], {type: 'application/json'});
@@ -229,13 +268,19 @@ document.addEventListener('DOMContentLoaded', () => {
         input.click();
     });
 
-    closeModal.onclick = () => {
-        modal.style.display = 'none';
-    };
+    Array.from(closeModals).forEach(closeBtn => {
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+            reminderModal.style.display = 'none';
+        }
+    });
 
     window.onclick = (event) => {
         if (event.target == modal) {
             modal.style.display = 'none';
+        }
+        if (event.target == reminderModal) {
+            reminderModal.style.display = 'none';
         }
     };
 
@@ -244,4 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderEntries();
     updateWordCount();
+
+    journalEntries.forEach(setReminder);
 });

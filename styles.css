@@ -24,6 +24,7 @@ h1, h2 {
 }
 input[type="text"],
 input[type="date"],
+input[type="datetime-local"],
 textarea,
 select {
     width: 100%;
@@ -127,7 +128,7 @@ li small {
 .delete-button {
     background: #f44336;
 }
-.mood-selector, .tags-input {
+.mood-selector, .tags-input, .reminder-input {
     margin-bottom: 10px;
 }
 .modal {
@@ -169,5 +170,12 @@ li small {
     margin-top: 20px;
 }
 .backup-controls button {
+    width: 48%;
+}
+.form-row {
+    display: flex;
+    justify-content: space-between;
+}
+.form-row > * {
     width: 48%;
 }
