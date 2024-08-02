@@ -6,6 +6,7 @@
     <title>Daily Journal App</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
@@ -50,6 +51,14 @@
             </div>
             <div id="tag-cloud"></div>
             <ul id="entries-list"></ul>
+        </div>
+        <div class="data-visualization">
+            <h2>Mood Trends</h2>
+            <canvas id="mood-chart"></canvas>
+        </div>
+        <div class="backup-controls">
+            <button id="backup-btn">Backup Data</button>
+            <button id="restore-btn">Restore Data</button>
         </div>
     </div>
     <div id="entry-modal" class="modal">

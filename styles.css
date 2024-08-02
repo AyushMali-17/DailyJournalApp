@@ -11,11 +11,11 @@ body {
     overflow: hidden;
     padding: 20px;
 }
-h1 {
+h1, h2 {
     color: #333;
     text-align: center;
 }
-.journal-form {
+.journal-form, .journal-entries, .data-visualization {
     background: #fff;
     padding: 20px;
     margin-bottom: 20px;
@@ -56,12 +56,6 @@ button {
 }
 button:hover {
     background: #555;
-}
-.journal-entries {
-    background: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 .filter-sort {
     display: flex;
@@ -168,4 +162,12 @@ li small {
     color: #000;
     text-decoration: none;
     cursor: pointer;
+}
+.backup-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+.backup-controls button {
+    width: 48%;
 }

@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = document.getElementsByClassName('close')[0];
     const wordCount = document.getElementById('word-count');
     const tagCloud = document.getElementById('tag-cloud');
+    const backupBtn = document.getElementById('backup-btn');
+    const restoreBtn = document.getElementById('restore-btn');
 
     let journalEntries = JSON.parse(localStorage.getItem('journalEntries')) || [];
 
@@ -45,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             entriesList.appendChild(li);
         });
         updateTagCloud();
+        updateMoodChart();
     }
 
     function saveEntry() {
@@ -148,11 +151,83 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function updateMoodChart() {
+        const moodCounts = journalEntries.reduce((acc, entry) => {
+            acc[entry.mood] = (acc[entry.mood] || 0) + 1;
+            return acc;
+        }, {});
+
+        const ctx = document.getElementById('mood-chart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(moodCounts),
+                datasets: [{
+                    data: Object.values(moodCounts),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Mood Distribution'
+                }
+            }
+        });
+    }
+
+    function backupData() {
+        const data = JSON.stringify(journalEntries);
+        const blob = new Blob([data], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'journal_backup.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function restoreData(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const restoredData = JSON.parse(e.target.result);
+                    journalEntries = restoredData;
+                    localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
+                    renderEntries();
+                    alert('Data restored successfully!');
+                } catch (error) {
+                    alert('Error restoring data. Please check the file format.');
+                }
+            };
+            reader.readAsText(file);
+        }
+    }
+
     saveEntryButton.addEventListener('click', saveEntry);
     searchInput.addEventListener('input', renderEntries);
     sortSelect.addEventListener('change', renderEntries);
     moodFilter.addEventListener('change', renderEntries);
     entryContent.addEventListener('input', updateWordCount);
+    backupBtn.addEventListener('click', backupData);
+    restoreBtn.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = restoreData;
+        input.click();
+    });
 
     closeModal.onclick = () => {
         modal.style.display = 'none';
