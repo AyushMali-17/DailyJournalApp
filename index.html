@@ -12,10 +12,18 @@
         <div class="journal-form">
             <input type="text" id="entry-title" placeholder="Entry Title">
             <textarea id="entry-content" placeholder="Write your journal entry here..."></textarea>
+            <input type="date" id="entry-date">
             <button id="save-entry">Save Entry</button>
         </div>
         <div class="journal-entries">
             <h2>Previous Entries</h2>
+            <div class="filter-sort">
+                <input type="text" id="search-input" placeholder="Search entries...">
+                <select id="sort-select">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                </select>
+            </div>
             <ul id="entries-list"></ul>
         </div>
     </div>

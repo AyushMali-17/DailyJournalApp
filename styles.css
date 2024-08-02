@@ -23,19 +23,24 @@ h1 {
     padding: 20px;
     margin-bottom: 20px;
     border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 input[type="text"],
-textarea {
+input[type="date"],
+textarea,
+select {
     width: 100%;
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
+    box-sizing: border-box;
 }
 
 textarea {
     height: 150px;
+    resize: vertical;
 }
 
 button {
@@ -47,6 +52,7 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: background 0.3s ease;
 }
 
 button:hover {
@@ -57,6 +63,22 @@ button:hover {
     background: #fff;
     padding: 20px;
     border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.filter-sort {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+#search-input {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+#sort-select {
+    width: 150px;
 }
 
 ul {
@@ -65,12 +87,43 @@ ul {
 }
 
 li {
-    background: #f4f4f4;
+    background: #f9f9f9;
     margin-bottom: 10px;
-    padding: 10px;
+    padding: 15px;
     border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 li h3 {
     margin-top: 0;
+    color: #333;
+}
+
+li p {
+    margin-bottom: 10px;
+}
+
+li small {
+    color: #777;
+}
+
+.entry-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.entry-actions button {
+    width: auto;
+    padding: 5px 10px;
+    margin-left: 10px;
+    font-size: 0.9em;
+}
+
+.edit-button {
+    background: #4CAF50;
+}
+
+.delete-button {
+    background: #f44336;
 }
