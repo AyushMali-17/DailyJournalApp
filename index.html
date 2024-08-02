@@ -13,6 +13,16 @@
             <input type="text" id="entry-title" placeholder="Entry Title">
             <textarea id="entry-content" placeholder="Write your journal entry here..."></textarea>
             <input type="date" id="entry-date">
+            <div class="mood-selector">
+                <label for="mood">Mood:</label>
+                <select id="mood">
+                    <option value="happy">Happy</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="sad">Sad</option>
+                    <option value="excited">Excited</option>
+                    <option value="angry">Angry</option>
+                </select>
+            </div>
             <button id="save-entry">Save Entry</button>
         </div>
         <div class="journal-entries">
@@ -23,8 +33,25 @@
                     <option value="newest">Newest First</option>
                     <option value="oldest">Oldest First</option>
                 </select>
+                <select id="mood-filter">
+                    <option value="all">All Moods</option>
+                    <option value="happy">Happy</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="sad">Sad</option>
+                    <option value="excited">Excited</option>
+                    <option value="angry">Angry</option>
+                </select>
             </div>
             <ul id="entries-list"></ul>
+        </div>
+    </div>
+    <div id="entry-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title"></h2>
+            <p id="modal-content"></p>
+            <p id="modal-date"></p>
+            <p id="modal-mood"></p>
         </div>
     </div>
     <script src="script.js"></script>
