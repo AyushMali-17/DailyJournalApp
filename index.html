@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Journal App</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -12,6 +13,7 @@
         <div class="journal-form">
             <input type="text" id="entry-title" placeholder="Entry Title">
             <textarea id="entry-content" placeholder="Write your journal entry here..."></textarea>
+            <div id="word-count">Words: 0</div>
             <input type="date" id="entry-date">
             <div class="mood-selector">
                 <label for="mood">Mood:</label>
@@ -22,6 +24,10 @@
                     <option value="excited">Excited</option>
                     <option value="angry">Angry</option>
                 </select>
+            </div>
+            <div class="tags-input">
+                <label for="entry-tags">Tags:</label>
+                <input type="text" id="entry-tags" placeholder="Add tags (comma-separated)">
             </div>
             <button id="save-entry">Save Entry</button>
         </div>
@@ -42,6 +48,7 @@
                     <option value="angry">Angry</option>
                 </select>
             </div>
+            <div id="tag-cloud"></div>
             <ul id="entries-list"></ul>
         </div>
     </div>
@@ -52,6 +59,7 @@
             <p id="modal-content"></p>
             <p id="modal-date"></p>
             <p id="modal-mood"></p>
+            <p id="modal-tags"></p>
         </div>
     </div>
     <script src="script.js"></script>

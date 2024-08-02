@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const entryContent = document.getElementById('entry-content');
     const entryDate = document.getElementById('entry-date');
     const entryMood = document.getElementById('mood');
+    const entryTags = document.getElementById('entry-tags');
     const saveEntryButton = document.getElementById('save-entry');
     const entriesList = document.getElementById('entries-list');
     const searchInput = document.getElementById('search-input');
@@ -13,7 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalContent = document.getElementById('modal-content');
     const modalDate = document.getElementById('modal-date');
     const modalMood = document.getElementById('modal-mood');
+    const modalTags = document.getElementById('modal-tags');
     const closeModal = document.getElementsByClassName('close')[0];
+    const wordCount = document.getElementById('word-count');
+    const tagCloud = document.getElementById('tag-cloud');
 
     let journalEntries = JSON.parse(localStorage.getItem('journalEntries')) || [];
 
@@ -27,14 +31,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>${entry.title}</h3>
                 <p>${entry.content.substring(0, 100)}${entry.content.length > 100 ? '...' : ''}</p>
                 <small>${entry.date} | Mood: ${entry.mood}</small>
+                <div class="tags">${entry.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
                 <div class="entry-actions">
-                    <button class="edit-button" onclick="editEntry(${index})">Edit</button>
-                    <button class="delete-button" onclick="deleteEntry(${index})">Delete</button>
+                    <button class="edit-button" onclick="editEntry(${index})"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="delete-button" onclick="deleteEntry(${index})"><i class="fas fa-trash-alt"></i> Delete</button>
                 </div>
             `;
-            li.addEventListener('click', () => showEntryDetails(entry));
+            li.addEventListener('click', (e) => {
+                if (!e.target.closest('.entry-actions')) {
+                    showEntryDetails(entry);
+                }
+            });
             entriesList.appendChild(li);
         });
+        updateTagCloud();
     }
 
     function saveEntry() {
@@ -42,21 +52,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const content = entryContent.value.trim();
         const date = entryDate.value;
         const mood = entryMood.value;
+        const tags = entryTags.value.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+
         if (title && content && date) {
             const entry = {
                 title: title,
                 content: content,
                 date: new Date(date).toLocaleDateString(),
-                mood: mood
+                mood: mood,
+                tags: tags
             };
             journalEntries.unshift(entry);
             localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
-            entryTitle.value = '';
-            entryContent.value = '';
-            entryDate.value = '';
-            entryMood.value = 'happy';
+            resetForm();
             renderEntries();
         }
+    }
+
+    function resetForm() {
+        entryTitle.value = '';
+        entryContent.value = '';
+        entryDate.value = '';
+        entryMood.value = 'happy';
+        entryTags.value = '';
+        updateWordCount();
     }
 
     function deleteEntry(index) {
@@ -71,15 +90,18 @@ document.addEventListener('DOMContentLoaded', () => {
         entryContent.value = entry.content;
         entryDate.value = new Date(entry.date).toISOString().split('T')[0];
         entryMood.value = entry.mood;
+        entryTags.value = entry.tags.join(', ');
         journalEntries.splice(index, 1);
         localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
         renderEntries();
+        updateWordCount();
     }
 
     function filterEntries(entries, searchTerm, moodFilter) {
         return entries.filter(entry => 
             (entry.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            entry.content.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            entry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            entry.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) &&
             (moodFilter === 'all' || entry.mood === moodFilter)
         );
     }
@@ -97,13 +119,40 @@ document.addEventListener('DOMContentLoaded', () => {
         modalContent.textContent = entry.content;
         modalDate.textContent = `Date: ${entry.date}`;
         modalMood.textContent = `Mood: ${entry.mood}`;
+        modalTags.textContent = `Tags: ${entry.tags.join(', ')}`;
         modal.style.display = 'block';
+    }
+
+    function updateWordCount() {
+        const words = entryContent.value.trim().split(/\s+/).length;
+        wordCount.textContent = `Words: ${words}`;
+    }
+
+    function updateTagCloud() {
+        const allTags = journalEntries.flatMap(entry => entry.tags);
+        const tagCounts = allTags.reduce((acc, tag) => {
+            acc[tag] = (acc[tag] || 0) + 1;
+            return acc;
+        }, {});
+
+        tagCloud.innerHTML = '';
+        Object.entries(tagCounts).forEach(([tag, count]) => {
+            const tagElement = document.createElement('span');
+            tagElement.classList.add('tag');
+            tagElement.textContent = `${tag} (${count})`;
+            tagElement.addEventListener('click', () => {
+                searchInput.value = tag;
+                renderEntries();
+            });
+            tagCloud.appendChild(tagElement);
+        });
     }
 
     saveEntryButton.addEventListener('click', saveEntry);
     searchInput.addEventListener('input', renderEntries);
     sortSelect.addEventListener('change', renderEntries);
     moodFilter.addEventListener('change', renderEntries);
+    entryContent.addEventListener('input', updateWordCount);
 
     closeModal.onclick = () => {
         modal.style.display = 'none';
@@ -119,4 +168,5 @@ document.addEventListener('DOMContentLoaded', () => {
     window.editEntry = editEntry;
 
     renderEntries();
+    updateWordCount();
 });
