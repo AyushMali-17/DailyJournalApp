@@ -29,10 +29,24 @@
                         <option value="angry">Angry</option>
                     </select>
                 </div>
+                <div class="category-selector">
+                    <label for="category">Category:</label>
+                    <select id="category">
+                        <option value="personal">Personal</option>
+                        <option value="work">Work</option>
+                        <option value="study">Study</option>
+                        <option value="travel">Travel</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
             </div>
             <div class="tags-input">
                 <label for="entry-tags">Tags:</label>
                 <input type="text" id="entry-tags" placeholder="Add tags (comma-separated)">
+            </div>
+            <div class="image-input">
+                <label for="entry-image">Add Image:</label>
+                <input type="file" id="entry-image" accept="image/*">
             </div>
             <div class="reminder-input">
                 <label for="reminder-date">Set Reminder:</label>
@@ -56,6 +70,14 @@
                     <option value="excited">Excited</option>
                     <option value="angry">Angry</option>
                 </select>
+                <select id="category-filter">
+                    <option value="all">All Categories</option>
+                    <option value="personal">Personal</option>
+                    <option value="work">Work</option>
+                    <option value="study">Study</option>
+                    <option value="travel">Travel</option>
+                    <option value="other">Other</option>
+                </select>
             </div>
             <div id="tag-cloud"></div>
             <ul id="entries-list"></ul>
@@ -63,10 +85,13 @@
         <div class="data-visualization">
             <h2>Mood Trends</h2>
             <canvas id="mood-chart"></canvas>
+            <h2>Word Count Trends</h2>
+            <canvas id="word-count-chart"></canvas>
         </div>
         <div class="backup-controls">
             <button id="backup-btn">Backup Data</button>
             <button id="restore-btn">Restore Data</button>
+            <button id="export-pdf-btn">Export to PDF</button>
         </div>
     </div>
     <div id="entry-modal" class="modal">
@@ -76,7 +101,9 @@
             <div id="modal-content"></div>
             <p id="modal-date"></p>
             <p id="modal-mood"></p>
+            <p id="modal-category"></p>
             <p id="modal-tags"></p>
+            <p id="modal-image"></p>
             <p id="modal-reminder"></p>
         </div>
     </div>

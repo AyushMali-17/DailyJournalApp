@@ -1,81 +1,69 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
+    const saveButton = document.getElementById('save-entry');
     const entryTitle = document.getElementById('entry-title');
     const entryContent = document.getElementById('entry-content');
     const entryDate = document.getElementById('entry-date');
-    const entryMood = document.getElementById('mood');
+    const moodSelect = document.getElementById('mood');
+    const categorySelect = document.getElementById('category');
     const entryTags = document.getElementById('entry-tags');
+    const entryImage = document.getElementById('entry-image');
     const reminderDate = document.getElementById('reminder-date');
-    const saveEntryButton = document.getElementById('save-entry');
     const entriesList = document.getElementById('entries-list');
     const searchInput = document.getElementById('search-input');
     const sortSelect = document.getElementById('sort-select');
     const moodFilter = document.getElementById('mood-filter');
+    const categoryFilter = document.getElementById('category-filter');
+    const tagCloud = document.getElementById('tag-cloud');
+    const wordCountDisplay = document.getElementById('word-count');
     const modal = document.getElementById('entry-modal');
-    const reminderModal = document.getElementById('reminder-modal');
     const modalTitle = document.getElementById('modal-title');
     const modalContent = document.getElementById('modal-content');
     const modalDate = document.getElementById('modal-date');
     const modalMood = document.getElementById('modal-mood');
+    const modalCategory = document.getElementById('modal-category');
     const modalTags = document.getElementById('modal-tags');
+    const modalImage = document.getElementById('modal-image');
     const modalReminder = document.getElementById('modal-reminder');
+    const closeModal = document.querySelector('.close');
+    const reminderModal = document.getElementById('reminder-modal');
     const reminderMessage = document.getElementById('reminder-message');
-    const closeModals = document.getElementsByClassName('close');
-    const wordCount = document.getElementById('word-count');
-    const tagCloud = document.getElementById('tag-cloud');
-    const backupBtn = document.getElementById('backup-btn');
-    const restoreBtn = document.getElementById('restore-btn');
-
+    const closeReminderModal = document.querySelector('#reminder-modal .close');
+    const moodChartCtx = document.getElementById('mood-chart').getContext('2d');
+    const wordCountChartCtx = document.getElementById('word-count-chart').getContext('2d');
+    const backupButton = document.getElementById('backup-btn');
+    const restoreButton = document.getElementById('restore-btn');
+    const exportPdfButton = document.getElementById('export-pdf-btn');
+    
     let journalEntries = JSON.parse(localStorage.getItem('journalEntries')) || [];
 
-    function renderEntries() {
-        const filteredEntries = filterEntries(journalEntries, searchInput.value, moodFilter.value);
-        const sortedEntries = sortEntries(filteredEntries, sortSelect.value);
-        entriesList.innerHTML = '';
-        sortedEntries.forEach((entry, index) => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <h3>${entry.title}</h3>
-                <p>${marked(entry.content.substring(0, 100))}${entry.content.length > 100 ? '...' : ''}</p>
-                <small>${entry.date} | Mood: ${entry.mood}</small>
-                <div class="tags">${entry.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
-                <div class="entry-actions">
-                    <button class="edit-button" onclick="editEntry(${index})"><i class="fas fa-edit"></i> Edit</button>
-                    <button class="delete-button" onclick="deleteEntry(${index})"><i class="fas fa-trash-alt"></i> Delete</button>
-                </div>
-            `;
-            li.addEventListener('click', (e) => {
-                if (!e.target.closest('.entry-actions')) {
-                    showEntryDetails(entry);
-                }
-            });
-            entriesList.appendChild(li);
-        });
-        updateTagCloud();
-        updateMoodChart();
-    }
-
     function saveEntry() {
-        const title = entryTitle.value.trim();
-        const content = entryContent.value.trim();
+        const title = entryTitle.value;
+        const content = entryContent.value;
         const date = entryDate.value;
-        const mood = entryMood.value;
-        const tags = entryTags.value.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+        const mood = moodSelect.value;
+        const category = categorySelect.value;
+        const tags = entryTags.value.split(',').map(tag => tag.trim());
         const reminder = reminderDate.value;
+        const image = entryImage.files[0] ? URL.createObjectURL(entryImage.files[0]) : '';
 
         if (title && content && date) {
             const entry = {
-                title: title,
-                content: content,
-                date: new Date(date).toLocaleDateString(),
-                mood: mood,
-                tags: tags,
-                reminder: reminder
+                id: Date.now(),
+                title,
+                content,
+                date,
+                mood,
+                category,
+                tags,
+                image,
+                reminder
             };
-            journalEntries.unshift(entry);
+            journalEntries.push(entry);
             localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
+            renderEntries(journalEntries);
             resetForm();
-            renderEntries();
-            setReminder(entry);
+        } else {
+            alert('Please fill out all required fields.');
         }
     }
 
@@ -83,212 +71,35 @@ document.addEventListener('DOMContentLoaded', () => {
         entryTitle.value = '';
         entryContent.value = '';
         entryDate.value = '';
-        entryMood.value = 'happy';
+        moodSelect.value = 'happy';
+        categorySelect.value = 'personal';
         entryTags.value = '';
+        entryImage.value = '';
         reminderDate.value = '';
-        updateWordCount();
+        wordCountDisplay.textContent = 'Words: 0';
     }
 
-    function deleteEntry(index) {
-        journalEntries.splice(index, 1);
-        localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
-        renderEntries();
-    }
-
-    function editEntry(index) {
-        const entry = journalEntries[index];
-        entryTitle.value = entry.title;
-        entryContent.value = entry.content;
-        entryDate.value = new Date(entry.date).toISOString().split('T')[0];
-        entryMood.value = entry.mood;
-        entryTags.value = entry.tags.join(', ');
-        reminderDate.value = entry.reminder || '';
-        journalEntries.splice(index, 1);
-        localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
-        renderEntries();
-        updateWordCount();
-    }
-
-    function filterEntries(entries, searchTerm, moodFilter) {
-        return entries.filter(entry => 
-            (entry.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            entry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            entry.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) &&
-            (moodFilter === 'all' || entry.mood === moodFilter)
-        );
-    }
-
-    function sortEntries(entries, sortOrder) {
-        return entries.sort((a, b) => {
-            const dateA = new Date(a.date);
-            const dateB = new Date(b.date);
-            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    function renderEntries(entries) {
+        entriesList.innerHTML = '';
+        const filteredEntries = filterAndSortEntries(entries);
+        filteredEntries.forEach(entry => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <h3>${entry.title}</h3>
+                <p>${entry.content.substring(0, 100)}...</p>
+                <small>${entry.date} | Mood: ${entry.mood} | Category: ${entry.category}</small>
+                <div class="entry-actions">
+                    <button class="edit-button" data-id="${entry.id}">Edit</button>
+                    <button class="delete-button" data-id="${entry.id}">Delete</button>
+                </div>
+            `;
+            li.addEventListener('click', () => showModal(entry.id));
+            entriesList.appendChild(li);
         });
+        updateTagCloud(entries);
+        renderMoodChart(entries);
+        renderWordCountChart(entries);
     }
 
-    function showEntryDetails(entry) {
-        modalTitle.textContent = entry.title;
-        modalContent.innerHTML = DOMPurify.sanitize(marked(entry.content));
-        modalDate.textContent = `Date: ${entry.date}`;
-        modalMood.textContent = `Mood: ${entry.mood}`;
-        modalTags.textContent = `Tags: ${entry.tags.join(', ')}`;
-        modalReminder.textContent = entry.reminder ? `Reminder: ${new Date(entry.reminder).toLocaleString()}` : 'No reminder set';
-        modal.style.display = 'block';
-    }
 
-    function updateWordCount() {
-        const words = entryContent.value.trim().split(/\s+/).length;
-        wordCount.textContent = `Words: ${words}`;
-    }
-
-    function updateTagCloud() {
-        const allTags = journalEntries.flatMap(entry => entry.tags);
-        const tagCounts = allTags.reduce((acc, tag) => {
-            acc[tag] = (acc[tag] || 0) + 1;
-            return acc;
-        }, {});
-
-        tagCloud.innerHTML = '';
-        Object.entries(tagCounts).forEach(([tag, count]) => {
-            const tagElement = document.createElement('span');
-            tagElement.classList.add('tag');
-            tagElement.textContent = `${tag} (${count})`;
-            tagElement.addEventListener('click', () => {
-                searchInput.value = tag;
-                renderEntries();
-            });
-            tagCloud.appendChild(tagElement);
-        });
-    }
-
-    function updateMoodChart() {
-        const moodCounts = journalEntries.reduce((acc, entry) => {
-            acc[entry.mood] = (acc[entry.mood] || 0) + 1;
-            return acc;
-        }, {});
-
-        const ctx = document.getElementById('mood-chart').getContext('2d');
-        new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: Object.keys(moodCounts),
-                datasets: [{
-                    data: Object.values(moodCounts),
-                    backgroundColor: [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4BC0C0',
-                        '#9966FF'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                title: {
-                    display: true,
-                    text: 'Mood Distribution'
-                }
-            }
-        });
-    }
-
-    function setReminder(entry) {
-        if (entry.reminder) {
-            const reminderTime = new Date(entry.reminder).getTime();
-            const now = new Date().getTime();
-            const timeUntilReminder = reminderTime - now;
-
-            if (timeUntilReminder > 0) {
-                setTimeout(() => {
-                    showReminderNotification(entry);
-                }, timeUntilReminder);
-            }
-        }
-    }
-
-    function showReminderNotification(entry) {
-        reminderMessage.textContent = `Reminder for your journal entry: "${entry.title}"`;
-        reminderModal.style.display = 'block';
-
-        if ('Notification' in window) {
-            Notification.requestPermission().then(function (permission) {
-                if (permission === 'granted') {
-                    new Notification('Journal Reminder', {
-                        body: `Reminder for your journal entry: "${entry.title}"`,
-                    });
-                }
-            });
-        }
-    }
-
-    function backupData() {
-        const data = JSON.stringify(journalEntries);
-        const blob = new Blob([data], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'journal_backup.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-
-    function restoreData(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const restoredData = JSON.parse(e.target.result);
-                    journalEntries = restoredData;
-                    localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
-                    renderEntries();
-                    alert('Data restored successfully!');
-                } catch (error) {
-                    alert('Error restoring data. Please check the file format.');
-                }
-            };
-            reader.readAsText(file);
-        }
-    }
-
-    saveEntryButton.addEventListener('click', saveEntry);
-    searchInput.addEventListener('input', renderEntries);
-    sortSelect.addEventListener('change', renderEntries);
-    moodFilter.addEventListener('change', renderEntries);
-    entryContent.addEventListener('input', updateWordCount);
-    backupBtn.addEventListener('click', backupData);
-    restoreBtn.addEventListener('click', () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.onchange = restoreData;
-        input.click();
-    });
-
-    Array.from(closeModals).forEach(closeBtn => {
-        closeBtn.onclick = function() {
-            modal.style.display = 'none';
-            reminderModal.style.display = 'none';
-        }
-    });
-
-    window.onclick = (event) => {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-        if (event.target == reminderModal) {
-            reminderModal.style.display = 'none';
-        }
-    };
-
-    window.deleteEntry = deleteEntry;
-    window.editEntry = editEntry;
-
-    renderEntries();
-    updateWordCount();
-
-    journalEntries.forEach(setReminder);
 });
